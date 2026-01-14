@@ -9,6 +9,61 @@ public class RolandJV2080 extends Synth
     {
     public static final int MAXIMUM_NAME_LENGTH = 12;
 
+    static final boolean DEBUG = false;
+
+    public static final String[] KEY_ASSIGNS = new String[] { "Poly", "Solo" };
+    public static final String[] PORTAMENTO_MODES = new String[] { "Legato", "Normal" };
+    public static final String[] PORTAMENTO_TYPES = new String[] { "Time", "Rate" };
+    public static final String[] PORTAMENTO_STARTS = new String[] { "Pitch", "CC", "Note" };
+    public static final String[] HOLD_PEAK = new String[] { "Hold", "Peak" };
+    public static final String[] VOICE_PRIORITIES = new String[] { "Last", "Loudest" };
+    public static final String[] CHORUS_OUTPUTS = new String[] { "Mix", "EFX", "Reverb", "Mix+Reverb" };
+    public static final String[] ON_OFF = new String[] { "Off", "On" };
+    public static final String[] CLOCK_SOURCES = new String[] { "Internal", "MIDI" };
+    public static final String[] EFX_TYPES = new String[]
+        {
+        "STEREO-EQ",
+        "OVERDRIVE",
+        "DISTORTION",
+        "PHASER",
+        "SPECTRUM",
+        "ENHANCER",
+        "AUTO-WAH",
+        "ROTARY",
+        "COMPRESSOR",
+        "LIMITER",
+        "HEXA-CHORUS",
+        "TREMOLO-CHORUS",
+        "SPACE-D",
+        "STEREO-CHORUS",
+        "STEREO-FLANGER",
+        "STEP-FLANGER",
+        "STEREO-DELAY",
+        "MODULATION-DELAY",
+        "TRIPLE-TAP-DELAY",
+        "QUADRUPLE-TAP-DELAY",
+        "TIME-CONTROL-DELAY",
+        "2VOICE-PITCH-SHIFTER",
+        "FBK-PITCH-SHIFTER",
+        "REVERB",
+        "GATE-REVERB",
+        "OVERDRIVE->CHORUS",
+        "OVERDRIVE->FLANGER",
+        "OVERDRIVE->DELAY",
+        "DISTORTION->CHORUS",
+        "DISTORTION->FLANGER",
+        "DISTORTION->DELAY",
+        "ENHANCER->CHORUS",
+        "ENHANCER->FLANGER",
+        "ENHANCER->DELAY",
+        "CHORUS->DELAY",
+        "FLANGER->DELAY",
+        "CHORUS->FLANGER",
+        "CHORUS/DELAY",
+        "FLANGER/DELAY",
+        "CHORUS/FLANGER"
+        };
+
     int parseStatus = 0;
 
     static final int MODEL_ID = 0x6A;
@@ -17,8 +72,61 @@ public class RolandJV2080 extends Synth
 
     static final int[] TEMP_PATCH_ADDR_PREFIX = { 0x03, 0x00 };
 
-    static final int COMMON_SIZE = 0x48;
-    static final int TONE_SIZE = 0x101;
+    static final int COMMON_SIZE = 0x4A;
+    static final int TONE_SIZE = 0x81;
+
+    static final int COMMON_OFFSET_EFX_TYPE = 0x0C;
+    static final int COMMON_OFFSET_EFX_PARAMETER_1 = 0x0D;
+    static final int COMMON_OFFSET_EFX_PARAMETER_12 = 0x18;
+    static final int COMMON_OFFSET_EFX_MIX_OUT_SEND_LEVEL = 0x19;
+    static final int COMMON_OFFSET_EFX_CHORUS_SEND_LEVEL = 0x1A;
+    static final int COMMON_OFFSET_EFX_REVERB_SEND_LEVEL = 0x1B;
+    static final int COMMON_OFFSET_EFX_CONTROL_SOURCE_1 = 0x1C;
+    static final int COMMON_OFFSET_EFX_CONTROL_SENS_1 = 0x1D;
+    static final int COMMON_OFFSET_EFX_CONTROL_DEPTH_1 = 0x1E;
+    static final int COMMON_OFFSET_EFX_CONTROL_SOURCE_2 = 0x1F;
+    static final int COMMON_OFFSET_EFX_CONTROL_SENS_2 = 0x20;
+    static final int COMMON_OFFSET_EFX_CONTROL_DEPTH_2 = 0x21;
+    static final int COMMON_OFFSET_CHORUS_LEVEL = 0x22;
+    static final int COMMON_OFFSET_CHORUS_RATE = 0x23;
+    static final int COMMON_OFFSET_CHORUS_DEPTH = 0x24;
+    static final int COMMON_OFFSET_CHORUS_PRE_DELAY = 0x25;
+    static final int COMMON_OFFSET_CHORUS_FEEDBACK = 0x26;
+    static final int COMMON_OFFSET_CHORUS_OUTPUT = 0x27;
+    static final int COMMON_OFFSET_REVERB_LEVEL = 0x28;
+    static final int COMMON_OFFSET_REVERB_TIME = 0x29;
+    static final int COMMON_OFFSET_REVERB_HF_DAMP = 0x2A;
+    static final int COMMON_OFFSET_DELAY_FEEDBACK = 0x2B;
+    static final int COMMON_OFFSET_PATCH_TEMPO = 0x2C;
+    static final int COMMON_OFFSET_PATCH_LEVEL = 0x2D;
+    static final int COMMON_OFFSET_PATCH_PANNING = 0x2E;
+    static final int COMMON_OFFSET_ANALOG_FEEL = 0x2F;
+    static final int COMMON_OFFSET_VOICE_RESERVE = 0x30;
+    static final int COMMON_OFFSET_BEND_RANGE_UP = 0x31;
+    static final int COMMON_OFFSET_BEND_RANGE_DOWN = 0x32;
+    static final int COMMON_OFFSET_KEY_ASSIGN = 0x33;
+    static final int COMMON_OFFSET_SOLO_LEGATO_SWITCH = 0x34;
+    static final int COMMON_OFFSET_PORTAMENTO_SWITCH = 0x35;
+    static final int COMMON_OFFSET_PORTAMENTO_MODE = 0x36;
+    static final int COMMON_OFFSET_PORTAMENTO_TYPE = 0x37;
+    static final int COMMON_OFFSET_PORTAMENTO_START = 0x38;
+    static final int COMMON_OFFSET_PORTAMENTO_TIME = 0x39;
+    static final int COMMON_OFFSET_PATCH_CONTROL_SOURCE_2 = 0x3A;
+    static final int COMMON_OFFSET_PATCH_CONTROL_SOURCE_3 = 0x3B;
+    static final int COMMON_OFFSET_EFX_CONTROL_HOLD_PEAK = 0x3C;
+    static final int COMMON_OFFSET_CONTROL_1_HOLD_PEAK = 0x3D;
+    static final int COMMON_OFFSET_CONTROL_2_HOLD_PEAK = 0x3E;
+    static final int COMMON_OFFSET_CONTROL_3_HOLD_PEAK = 0x3F;
+    static final int COMMON_OFFSET_CONTROL_4_HOLD_PEAK = 0x40;
+    static final int COMMON_OFFSET_VELOCITY_RANGE_SWITCH = 0x41;
+    static final int COMMON_OFFSET_OCTAVE_SHIFT = 0x42;
+    static final int COMMON_OFFSET_STEREO_TONE_DEPTH = 0x43;
+    static final int COMMON_OFFSET_VOICE_PRIORITY = 0x44;
+    static final int COMMON_OFFSET_STRUCTURE_TYPE_1_2 = 0x45;
+    static final int COMMON_OFFSET_STRUCTURE_TYPE_3_4 = 0x46;
+    static final int COMMON_OFFSET_BOOSTER_3_4 = 0x47;
+    static final int COMMON_OFFSET_CLOCK_SOURCE = 0x48;
+    static final int COMMON_OFFSET_CATEGORY = 0x49;
 
     byte[] commonData = new byte[COMMON_SIZE];
     boolean[] commonReceived = new boolean[COMMON_SIZE];
@@ -75,6 +183,7 @@ public class RolandJV2080 extends Synth
     static final int TONE_OFFSET_OUTPUT_ASSIGN = 0x7D;
     static final int TONE_OFFSET_MIX_EFX_SEND_LEVEL = 0x7E;
     static final int TONE_OFFSET_CHORUS_SEND_LEVEL = 0x7F;
+    static final int TONE_OFFSET_REVERB_SEND_LEVEL = 0x80;
 
     public RolandJV2080()
         {
@@ -84,6 +193,7 @@ public class RolandJV2080 extends Synth
         VBox vbox = new VBox();
         HBox hbox = new HBox();
         hbox.add(addNameGlobal(Style.COLOR_GLOBAL()));
+        hbox.addLast(addCommon(Style.COLOR_A()));
         vbox.add(hbox);
         soundPanel.add(vbox, BorderLayout.CENTER);
         addTab("Common", soundPanel);
@@ -96,7 +206,110 @@ public class RolandJV2080 extends Synth
             tonePanel.add(tvbox, BorderLayout.CENTER);
             addTab("Tone " + i, tonePanel);
             }
+
         }
+
+    void loadCommonFromBuffer(byte[] buf)
+        {
+        if (buf == null || buf.length < COMMON_SIZE) return;
+
+        model.set("efxtype", (buf[COMMON_OFFSET_EFX_TYPE] & 0x7F));
+        for(int i = 0; i < 12; i++)
+            {
+            model.set("efxparameter" + (i + 1), (buf[COMMON_OFFSET_EFX_PARAMETER_1 + i] & 0x7F));
+            }
+        model.set("efxmixoutsendlevel", (buf[COMMON_OFFSET_EFX_MIX_OUT_SEND_LEVEL] & 0x7F));
+        model.set("efxchorussendlevel", (buf[COMMON_OFFSET_EFX_CHORUS_SEND_LEVEL] & 0x7F));
+        model.set("efxreverbsendlevel", (buf[COMMON_OFFSET_EFX_REVERB_SEND_LEVEL] & 0x7F));
+        model.set("efxcontrolsource1", (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_1] & 0x7F));
+        model.set("efxcontrolsens1", (buf[COMMON_OFFSET_EFX_CONTROL_SENS_1] & 0x7F));
+        model.set("efxcontroldepth1", (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_1] & 0x7F));
+        model.set("efxcontrolsource2", (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_2] & 0x7F));
+        model.set("efxcontrolsens2", (buf[COMMON_OFFSET_EFX_CONTROL_SENS_2] & 0x7F));
+        model.set("efxcontroldepth2", (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_2] & 0x7F));
+
+        model.set("choruslevel", (buf[COMMON_OFFSET_CHORUS_LEVEL] & 0x7F));
+        model.set("chorusrate", (buf[COMMON_OFFSET_CHORUS_RATE] & 0x7F));
+        model.set("chorusdepth", (buf[COMMON_OFFSET_CHORUS_DEPTH] & 0x7F));
+        model.set("choruspredelay", (buf[COMMON_OFFSET_CHORUS_PRE_DELAY] & 0x7F));
+        model.set("chorusfeedback", (buf[COMMON_OFFSET_CHORUS_FEEDBACK] & 0x7F));
+
+        int chOut = (buf[COMMON_OFFSET_CHORUS_OUTPUT] & 0x7F);
+        if (chOut > 3) chOut = 3;
+        model.set("chorusoutput", chOut);
+
+        model.set("reverblevel", (buf[COMMON_OFFSET_REVERB_LEVEL] & 0x7F));
+        model.set("reverbtime", (buf[COMMON_OFFSET_REVERB_TIME] & 0x7F));
+        int hf = (buf[COMMON_OFFSET_REVERB_HF_DAMP] & 0x7F);
+        if (hf > 17) hf = 17;
+        model.set("reverbhfdamp", hf);
+        model.set("delayfeedback", (buf[COMMON_OFFSET_DELAY_FEEDBACK] & 0x7F));
+
+        int tempo = (buf[COMMON_OFFSET_PATCH_TEMPO] & 0x7F);
+        if (tempo < 20) tempo = 20;
+        if (tempo > 250) tempo = 250;
+        model.set("patchtempo", tempo);
+
+        model.set("patchlevel", (buf[COMMON_OFFSET_PATCH_LEVEL] & 0x7F));
+        model.set("patchpanning", (buf[COMMON_OFFSET_PATCH_PANNING] & 0x7F));
+        model.set("analogfeel", (buf[COMMON_OFFSET_ANALOG_FEEL] & 0x7F));
+
+        int vr = (buf[COMMON_OFFSET_VOICE_RESERVE] & 0x7F);
+        if (vr > 64) vr = 64;
+        model.set("voicereserve", vr);
+
+        int bendUp = (buf[COMMON_OFFSET_BEND_RANGE_UP] & 0x7F);
+        if (bendUp > 12) bendUp = 12;
+        model.set("bendrangeup", bendUp);
+
+        int bendDown = (buf[COMMON_OFFSET_BEND_RANGE_DOWN] & 0x7F);
+        if (bendDown > 48) bendDown = 48;
+        model.set("bendrangedown", bendDown);
+
+        model.set("keyassign", ((buf[COMMON_OFFSET_KEY_ASSIGN] & 0x7F) == 0 ? 0 : 1));
+        model.set("sololegatoswitch", ((buf[COMMON_OFFSET_SOLO_LEGATO_SWITCH] & 0x7F) == 0 ? 0 : 1));
+        model.set("portamentoswitch", ((buf[COMMON_OFFSET_PORTAMENTO_SWITCH] & 0x7F) == 0 ? 0 : 1));
+        model.set("portamentomode", ((buf[COMMON_OFFSET_PORTAMENTO_MODE] & 0x7F) == 0 ? 0 : 1));
+        model.set("portamentotype", ((buf[COMMON_OFFSET_PORTAMENTO_TYPE] & 0x7F) == 0 ? 0 : 1));
+        int portaStart = (buf[COMMON_OFFSET_PORTAMENTO_START] & 0x7F);
+        if (portaStart > 2) portaStart = 2;
+        model.set("portamentostart", portaStart);
+        model.set("portamentotime", (buf[COMMON_OFFSET_PORTAMENTO_TIME] & 0x7F));
+
+        model.set("patchcontrolsource2", (buf[COMMON_OFFSET_PATCH_CONTROL_SOURCE_2] & 0x7F));
+        model.set("patchcontrolsource3", (buf[COMMON_OFFSET_PATCH_CONTROL_SOURCE_3] & 0x7F));
+
+        model.set("efxcontrolholdpeak", ((buf[COMMON_OFFSET_EFX_CONTROL_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
+        model.set("control1holdpeak", ((buf[COMMON_OFFSET_CONTROL_1_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
+        model.set("control2holdpeak", ((buf[COMMON_OFFSET_CONTROL_2_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
+        model.set("control3holdpeak", ((buf[COMMON_OFFSET_CONTROL_3_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
+        model.set("control4holdpeak", ((buf[COMMON_OFFSET_CONTROL_4_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
+
+        model.set("velocityrangeswitch", ((buf[COMMON_OFFSET_VELOCITY_RANGE_SWITCH] & 0x7F) == 0 ? 0 : 1));
+
+        int os = (buf[COMMON_OFFSET_OCTAVE_SHIFT] & 0x7F);
+        if (os > 6) os = 6;
+        model.set("octaveshift", os);
+
+        int std = (buf[COMMON_OFFSET_STEREO_TONE_DEPTH] & 0x7F);
+        if (std > 6) std = 6;
+        model.set("stereotondepth", std);
+
+        model.set("voicepriority", ((buf[COMMON_OFFSET_VOICE_PRIORITY] & 0x7F) == 0 ? 0 : 1));
+        model.set("structuretype12", (buf[COMMON_OFFSET_STRUCTURE_TYPE_1_2] & 0x7F));
+        model.set("structuretype34", (buf[COMMON_OFFSET_STRUCTURE_TYPE_3_4] & 0x7F));
+
+        int booster = (buf[COMMON_OFFSET_BOOSTER_3_4] & 0x7F);
+        if (booster > 1) booster = 1;
+        model.set("booster34", booster);
+
+        int clock = (buf[COMMON_OFFSET_CLOCK_SOURCE] & 0x7F);
+        if (clock > 1) clock = 1;
+        model.set("clocksource", clock);
+
+        model.set("category", (buf[COMMON_OFFSET_CATEGORY] & 0x7F));
+        }
+
 
     public byte getID()
         {
@@ -171,6 +384,17 @@ public class RolandJV2080 extends Synth
         msg[pos++] = produceChecksum(msg, 5, 5 + 8);
         msg[pos++] = (byte)0xF7;
         return msg;
+        }
+
+    void logRQ1(byte[] rq1)
+        {
+        if (!DEBUG) return;
+        if (rq1 == null || rq1.length < 15) return;
+        System.err.println("RolandJV2080 RQ1 " +
+            String.format("%02X %02X %02X %02X", rq1[5] & 0x7F, rq1[6] & 0x7F, rq1[7] & 0x7F, rq1[8] & 0x7F) +
+            " size=" +
+            String.format("%02X %02X %02X %02X", rq1[9] & 0x7F, rq1[10] & 0x7F, rq1[11] & 0x7F, rq1[12] & 0x7F) +
+            " chk=" + String.format("%02X", rq1[13] & 0x7F));
         }
 
     void resetReceived()
@@ -286,6 +510,7 @@ public class RolandJV2080 extends Synth
         model.set("tone" + tone + "outputassign", (buf[TONE_OFFSET_OUTPUT_ASSIGN] & 0x7F));
         model.set("tone" + tone + "mixefxsendlevel", (buf[TONE_OFFSET_MIX_EFX_SEND_LEVEL] & 0x7F));
         model.set("tone" + tone + "chorussendlevel", (buf[TONE_OFFSET_CHORUS_SEND_LEVEL] & 0x7F));
+        model.set("tone" + tone + "reverbsendlevel", (buf[TONE_OFFSET_REVERB_SEND_LEVEL] & 0x7F));
         }
 
     public JFrame sprout()
@@ -319,6 +544,153 @@ public class RolandJV2080 extends Synth
 
         globalCategory.add(vbox, BorderLayout.WEST);
         return globalCategory;
+        }
+
+    public JComponent addCommon(Color color)
+        {
+        Category category = new Category(this, "Common", color);
+
+        JComponent comp;
+        HBox hbox = new HBox();
+
+        comp = new LabelledDial("Tempo", this, "patchtempo", color, 20, 250);
+        hbox.add(comp);
+        comp = new LabelledDial("Level", this, "patchlevel", color, 0, 127);
+        hbox.add(comp);
+        comp = new LabelledDial("Pan", this, "patchpanning", color, 0, 127)
+            {
+            public boolean isSymmetric() { return true; }
+            public String map(int value)
+                {
+                if (value < 64)
+                    {
+                    return "L" + (64 - value);
+                    }
+                else if (value == 64) return "--";
+                else
+                    {
+                    return "R" + (value - 64);
+                    }
+                }
+            };
+        hbox.add(comp);
+        comp = new LabelledDial("Analog", this, "analogfeel", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Feel");
+        hbox.add(comp);
+
+        comp = new LabelledDial("Reserve", this, "voicereserve", color, 0, 64);
+        ((LabelledDial)comp).addAdditionalLabel("Voice");
+        hbox.add(comp);
+
+        comp = new LabelledDial("Octave", this, "octaveshift", color, 0, 6)
+            {
+            public String map(int val)
+                {
+                return "" + (val - 3);
+                }
+            };
+        ((LabelledDial)comp).addAdditionalLabel("Shift");
+        hbox.add(comp);
+
+        comp = new LabelledDial("Stereo", this, "stereotondepth", color, 0, 6)
+            {
+            public String map(int val)
+                {
+                return "" + (val - 3);
+                }
+            };
+        ((LabelledDial)comp).addAdditionalLabel("Depth");
+        hbox.add(comp);
+
+        VBox vbox2 = new VBox();
+        comp = new Chooser("Key Assign", this, "keyassign", KEY_ASSIGNS);
+        vbox2.add(comp);
+        comp = new CheckBox("Solo Legato", this, "sololegatoswitch");
+        vbox2.add(comp);
+        comp = new CheckBox("Portamento", this, "portamentoswitch");
+        vbox2.add(comp);
+        comp = new Chooser("Porta Mode", this, "portamentomode", PORTAMENTO_MODES);
+        vbox2.add(comp);
+        comp = new Chooser("Porta Type", this, "portamentotype", PORTAMENTO_TYPES);
+        vbox2.add(comp);
+        comp = new Chooser("Porta Start", this, "portamentostart", PORTAMENTO_STARTS);
+        vbox2.add(comp);
+        comp = new CheckBox("Vel Range", this, "velocityrangeswitch");
+        vbox2.add(comp);
+        comp = new Chooser("Voice Pri", this, "voicepriority", VOICE_PRIORITIES);
+        vbox2.add(comp);
+        hbox.add(vbox2);
+
+        comp = new LabelledDial("Porta", this, "portamentotime", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Time");
+        hbox.add(comp);
+
+        comp = new LabelledDial("Bend", this, "bendrangedown", color, 0, 48);
+        ((LabelledDial)comp).addAdditionalLabel("Down");
+        hbox.add(comp);
+        comp = new LabelledDial("Bend", this, "bendrangeup", color, 0, 12);
+        ((LabelledDial)comp).addAdditionalLabel("Up");
+        hbox.add(comp);
+
+        comp = new Chooser("EFX Type", this, "efxtype", EFX_TYPES);
+        hbox.add(comp);
+        comp = new LabelledDial("EFX", this, "efxmixoutsendlevel", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Mix Out");
+        hbox.add(comp);
+        comp = new LabelledDial("EFX", this, "efxchorussendlevel", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Ch Send");
+        hbox.add(comp);
+        comp = new LabelledDial("EFX", this, "efxreverbsendlevel", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Rv Send");
+        hbox.add(comp);
+
+        comp = new LabelledDial("Chorus", this, "choruslevel", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Level");
+        hbox.add(comp);
+        comp = new LabelledDial("Chorus", this, "chorusrate", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Rate");
+        hbox.add(comp);
+        comp = new LabelledDial("Chorus", this, "chorusdepth", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Depth");
+        hbox.add(comp);
+        comp = new LabelledDial("Chorus", this, "choruspredelay", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("PreDelay");
+        hbox.add(comp);
+        comp = new LabelledDial("Chorus", this, "chorusfeedback", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Feedback");
+        hbox.add(comp);
+        comp = new Chooser("Ch Output", this, "chorusoutput", CHORUS_OUTPUTS);
+        hbox.add(comp);
+
+        comp = new LabelledDial("Reverb", this, "reverblevel", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Level");
+        hbox.add(comp);
+        comp = new LabelledDial("Reverb", this, "reverbtime", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Time");
+        hbox.add(comp);
+        comp = new LabelledDial("Reverb", this, "reverbhfdamp", color, 0, 17);
+        ((LabelledDial)comp).addAdditionalLabel("HF Damp");
+        hbox.add(comp);
+
+        comp = new LabelledDial("Delay", this, "delayfeedback", color, 0, 127);
+        ((LabelledDial)comp).addAdditionalLabel("Feedback");
+        hbox.add(comp);
+
+        VBox vbox3 = new VBox();
+        comp = new LabelledDial("Struct", this, "structuretype12", color, 0, 9);
+        ((LabelledDial)comp).addAdditionalLabel("1/2");
+        vbox3.add(comp);
+        comp = new LabelledDial("Struct", this, "structuretype34", color, 0, 9);
+        ((LabelledDial)comp).addAdditionalLabel("3/4");
+        vbox3.add(comp);
+        comp = new Chooser("Booster 3/4", this, "booster34", ON_OFF);
+        vbox3.add(comp);
+        comp = new Chooser("Clock", this, "clocksource", CLOCK_SOURCES);
+        vbox3.add(comp);
+        hbox.add(vbox3);
+
+        category.add(hbox, BorderLayout.CENTER);
+        return category;
         }
 
     public JComponent addToneBasic(final int tone, Color color)
@@ -492,6 +864,8 @@ public class RolandJV2080 extends Synth
         hbox.add(comp);
         comp = new LabelledDial("Ch Send", this, "tone" + tone + "chorussendlevel", color, 0, 127);
         hbox.add(comp);
+        comp = new LabelledDial("Rev Send", this, "tone" + tone + "reverbsendlevel", color, 0, 127);
+        hbox.add(comp);
 
         vbox.add(hbox);
         category.add(vbox, BorderLayout.CENTER);
@@ -550,7 +924,7 @@ public class RolandJV2080 extends Synth
             int tone = parseStatus;
             int payloadPos = 9;
             int payloadLen = data.length - 11;
-            if (payloadLen <= TONE_OFFSET_CHORUS_SEND_LEVEL)
+            if (payloadLen <= TONE_OFFSET_REVERB_SEND_LEVEL)
                 return PARSE_FAILED;
 
             model.set("tone" + tone + "toneswitch", (data[payloadPos + TONE_OFFSET_TONE_SWITCH] & 0x01));
@@ -611,6 +985,7 @@ public class RolandJV2080 extends Synth
             model.set("tone" + tone + "outputassign", (data[payloadPos + TONE_OFFSET_OUTPUT_ASSIGN] & 0x7F));
             model.set("tone" + tone + "mixefxsendlevel", (data[payloadPos + TONE_OFFSET_MIX_EFX_SEND_LEVEL] & 0x7F));
             model.set("tone" + tone + "chorussendlevel", (data[payloadPos + TONE_OFFSET_CHORUS_SEND_LEVEL] & 0x7F));
+            model.set("tone" + tone + "reverbsendlevel", (data[payloadPos + TONE_OFFSET_REVERB_SEND_LEVEL] & 0x7F));
 
             parseStatus++;
             if (parseStatus == 5)
@@ -679,14 +1054,56 @@ public class RolandJV2080 extends Synth
             int payloadPos = 9;
             int payloadLen = data.length - 11;
             if (payloadLen <= 0) return PARSE_FAILED;
+
+            if (DEBUG)
+                {
+                System.err.println("RolandJV2080 DT1 " +
+                    String.format("%02X %02X %02X %02X", a1, a2, a3, a4) +
+                    " len=" + payloadLen);
+                }
+
             byte[] payload = new byte[payloadLen];
             System.arraycopy(data, payloadPos, payload, 0, payloadLen);
 
-            int baseCommon = linearAddress(TEMP_PATCH_ADDR_PREFIX[0], TEMP_PATCH_ADDR_PREFIX[1], 0x00, 0x00);
-            int baseTone1 = linearAddress(TEMP_PATCH_ADDR_PREFIX[0], TEMP_PATCH_ADDR_PREFIX[1], 0x10, 0x00);
-            int baseTone2 = linearAddress(TEMP_PATCH_ADDR_PREFIX[0], TEMP_PATCH_ADDR_PREFIX[1], 0x12, 0x00);
-            int baseTone3 = linearAddress(TEMP_PATCH_ADDR_PREFIX[0], TEMP_PATCH_ADDR_PREFIX[1], 0x14, 0x00);
-            int baseTone4 = linearAddress(TEMP_PATCH_ADDR_PREFIX[0], TEMP_PATCH_ADDR_PREFIX[1], 0x16, 0x00);
+            // Support both TEMP patch dumps (03 00 ...) and USER patch dumps (11 xx ...)
+            int prefix1 = TEMP_PATCH_ADDR_PREFIX[0];
+            int prefix2 = TEMP_PATCH_ADDR_PREFIX[1];
+            if (a1 == 0x11)
+                {
+                prefix1 = a1;
+                prefix2 = a2;
+                }
+
+            int baseCommon = linearAddress(prefix1, prefix2, 0x00, 0x00);
+            int baseTone1 = linearAddress(prefix1, prefix2, 0x10, 0x00);
+            int baseTone2 = linearAddress(prefix1, prefix2, 0x12, 0x00);
+            int baseTone3 = linearAddress(prefix1, prefix2, 0x14, 0x00);
+            int baseTone4 = linearAddress(prefix1, prefix2, 0x16, 0x00);
+
+            boolean dumpComplete = (receivedCountCommon == COMMON_SIZE &&
+                receivedCountTone[1] == TONE_SIZE && receivedCountTone[2] == TONE_SIZE && receivedCountTone[3] == TONE_SIZE && receivedCountTone[4] == TONE_SIZE);
+
+            // If we're receiving the start of a dump (common base), reset buffers so UI will update cleanly.
+            if (addr == baseCommon)
+                {
+                resetReceived();
+                }
+
+            // Front-panel dumps don't always start at baseCommon.  If we already have a complete dump and
+            // we see any new DT1 in the current patch address ranges, treat it as a new dump and reset.
+            if (dumpComplete)
+                {
+                boolean inRange =
+                    ((addr >= baseCommon && addr < baseCommon + COMMON_SIZE) ||
+                    (addr >= baseTone1 && addr < baseTone1 + TONE_SIZE) ||
+                    (addr >= baseTone2 && addr < baseTone2 + TONE_SIZE) ||
+                    (addr >= baseTone3 && addr < baseTone3 + TONE_SIZE) ||
+                    (addr >= baseTone4 && addr < baseTone4 + TONE_SIZE));
+                if (inRange)
+                    {
+                    resetReceived();
+                    }
+                }
 
             if (addr >= baseCommon && addr < baseCommon + COMMON_SIZE)
                 {
@@ -708,6 +1125,7 @@ public class RolandJV2080 extends Synth
                             sb.append((char)(commonData[i] & 0x7F));
                             }
                         model.set("name", revisePatchName(sb.toString()));
+                        loadCommonFromBuffer(commonData);
                         }
                     }
                 }
@@ -753,14 +1171,15 @@ public class RolandJV2080 extends Synth
 
     public byte[] requestCurrentDump()
         {
-        return new byte[0];
+        // Request the TEMP/edit-buffer patch common block (03 00 00 00)
+        return buildRQ1(buildAddress(0x00, 0x00), new int[] { 0x00, 0x00, 0x00, COMMON_SIZE });
         }
 
     public void performRequestCurrentDump()
         {
         resetReceived();
 
-        byte[] common = buildRQ1(buildAddress(0x00, 0x00), new int[] { 0x00, 0x00, 0x00, COMMON_SIZE });
+        byte[] common = requestCurrentDump();
         byte[] tone1 = buildRQ1(buildAddress(0x10, 0x00), new int[] { 0x00, 0x00, 0x01, 0x01 });
         byte[] tone2 = buildRQ1(buildAddress(0x12, 0x00), new int[] { 0x00, 0x00, 0x01, 0x01 });
         byte[] tone3 = buildRQ1(buildAddress(0x14, 0x00), new int[] { 0x00, 0x00, 0x01, 0x01 });

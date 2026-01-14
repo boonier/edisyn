@@ -34,6 +34,18 @@ public class LabelledDial extends NumericalComponent
     Component glue;
     boolean updatesDynamically = true;
     boolean updatingDynamically = false;
+
+    static Color uiColor(String key, Color fallback)
+        {
+        Color c = UIManager.getColor(key);
+        return (c == null ? fallback : c);
+        }
+
+    Color dialBackgroundColor()
+        {
+        Color c = getBackground();
+        return (c == null ? Style.BACKGROUND_COLOR() : c);
+        }
         
     public void repaintDial() { dial.repaint(); }
     
@@ -100,7 +112,7 @@ public class LabelledDial extends NumericalComponent
         JLabel label2 = new JLabel(_label);
                 
         label2.setFont(Style.SMALL_FONT());
-        label2.setBackground(Style.BACKGROUND_COLOR()); // TRANSPARENT);
+        label2.setBackground(dialBackgroundColor()); // TRANSPARENT);
         label2.setForeground(Style.TEXT_COLOR());
 
         Box box = new Box(BoxLayout.X_AXIS);
@@ -273,6 +285,23 @@ public class LabelledDial extends NumericalComponent
         // Field in the center of the dial
         JLabel field = new JLabel("88888", SwingConstants.CENTER);
 
+        Color uiDialBackground() { return LabelledDial.this.dialBackgroundColor(); }
+        Color uiDialText() { return Style.TEXT_COLOR(); }
+        Color uiDialUnset()
+            {
+            Color c = UIManager.getColor("Component.borderColor");
+            if (c == null) c = UIManager.getColor("Separator.foreground");
+            if (c == null) c = Style.DIAL_UNSET_COLOR();
+            return c;
+            }
+        Color uiDialDynamic()
+            {
+            Color c = UIManager.getColor("Component.accentColor");
+            if (c == null) c = UIManager.getColor("Actions.Blue");
+            if (c == null) c = Style.DIAL_DYNAMIC_COLOR();
+            return c;
+            }
+
         public Dimension getPreferredSize() { return new Dimension(Style.LABELLED_DIAL_WIDTH(), Style.LABELLED_DIAL_WIDTH()); }
         public Dimension getMinimumSize() { return new Dimension(Style.LABELLED_DIAL_WIDTH(), Style.LABELLED_DIAL_WIDTH()); }
         
@@ -407,8 +436,8 @@ public class LabelledDial extends NumericalComponent
             this.staticColor = staticColor;
 
             field.setFont(Style.DIAL_FONT());
-            field.setBackground(Style.BACKGROUND_COLOR()); // TRANSPARENT);
-            field.setForeground(Style.TEXT_COLOR());
+            field.setBackground(uiDialBackground()); // TRANSPARENT);
+            field.setForeground(uiDialText());
         
             addMouseWheelListener(new MouseWheelListener()
                 {
@@ -592,10 +621,10 @@ public class LabelledDial extends NumericalComponent
             Rectangle rect = getBounds();
             rect.x = 0;
             rect.y = 0;
-            graphics.setPaint(Style.BACKGROUND_COLOR());
+            graphics.setPaint(uiDialBackground());
             graphics.fill(rect);
             rect = getDrawSquare();
-            graphics.setPaint(Style.DIAL_UNSET_COLOR());
+            graphics.setPaint(uiDialUnset());
             graphics.setStroke(Style.DIAL_THIN_STROKE());
             Arc2D.Double arc = new Arc2D.Double();
         
@@ -620,7 +649,7 @@ public class LabelledDial extends NumericalComponent
 
             if (status == STATUS_DIAL_DYNAMIC)
                 {
-                graphics.setPaint(Style.DIAL_DYNAMIC_COLOR());
+                graphics.setPaint(uiDialDynamic());
                 if (state == min)
                     {
                     interval = 0;

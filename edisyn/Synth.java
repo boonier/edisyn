@@ -125,6 +125,8 @@ public abstract class Synth extends JComponent implements Updatable
     public JCheckBoxMenuItem morphTestNotesMenu;
     /** The "High Resolution Display" menu */
     public JCheckBoxMenuItem highResolutionDisplayMenu;
+    /** The "Dark Mode" menu */
+    public JCheckBoxMenuItem darkModeMenu;
     /** The "Blend" menu */
     public JMenu blend;
     /** NN randomization checkbox, only appears if the Synth providesNN (such as a DX7) */
@@ -133,6 +135,41 @@ public abstract class Synth extends JComponent implements Updatable
     boolean sprouted = false;
     JMenuItem mixAgainMenu = null;
     boolean highResolutionDisplay = true;
+
+    void applyFlatLaf(boolean dark)
+        {
+        try
+            {
+            // Use reflection so Synth still compiles/runs without FlatLaf on the classpath.
+            String className = dark ? "com.formdev.flatlaf.FlatDarkLaf" : "com.formdev.flatlaf.FlatLightLaf";
+            Class<?> clazz = Class.forName(className);
+            java.lang.reflect.Method setup = clazz.getMethod("setup");
+            setup.invoke(null);
+            }
+        catch (Throwable t)
+            {
+            // ignore, fall back to whatever LAF is already set
+            }
+
+        // Refresh cached palette used by custom-painted widgets
+        Style.updateColors();
+
+        // Update all windows
+        try
+            {
+            java.awt.Window[] windows = java.awt.Window.getWindows();
+            for (int i = 0; i < windows.length; i++)
+                {
+                SwingUtilities.updateComponentTreeUI(windows[i]);
+                windows[i].invalidate();
+                windows[i].validate();
+                windows[i].repaint();
+                }
+            }
+        catch (Throwable t)
+            {
+            }
+        }
 
     /// Librarian menus that may not be turned on
     JMenuItem downloadMenu;
@@ -5872,6 +5909,19 @@ super.paint(g);
                 }
             });
 
+        darkModeMenu = new JCheckBoxMenuItem("Dark Mode");
+        menu.add(darkModeMenu);
+        darkModeMenu.setSelected(getLastXAsBoolean("FlatLafDark", null, true, false));
+        darkModeMenu.addActionListener(new ActionListener()
+            {
+            public void actionPerformed( ActionEvent e)
+                {
+                boolean dark = darkModeMenu.isSelected();
+                setLastX("" + dark, "FlatLafDark", null);
+                applyFlatLaf(dark);
+                }
+            });
+
         menu.addSeparator();
 
         JMenuItem colorMenu = new JMenuItem("Change Color Scheme...");
@@ -6117,6 +6167,8 @@ menubar.add(helpMenu);
         clearNotesMenu.setSelected(getLastXAsBoolean("SendTestNotesMorph", null, true, false));
         morphTestNotesMenu.setSelected(morphTestNotes);
         highResolutionDisplayMenu.setSelected(highResolutionDisplay);
+        if (darkModeMenu != null)
+            darkModeMenu.setSelected(getLastXAsBoolean("FlatLafDark", null, true, false));
         }
             
     void doPerChannelCCs(boolean val)

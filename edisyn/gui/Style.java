@@ -125,11 +125,11 @@ public class Style
     /** Width of the set region in Dials etc.  Should be a multiple of 2, ideally 4*/
     public static float DIAL_STROKE_WIDTH() { return 5.0f; }
     /** Width of the unset region in Dials etc.  Should be a multiple of 2, ideally 2*/
-    public static float DIAL_STROKE_THIN_WIDTH() { return 3.0f; }
+    public static float DIAL_STROKE_THIN_WIDTH() { return 5.0f; }
     /** The stroke for the set region in Dials etc. */
-    public static BasicStroke DIAL_THIN_STROKE() { return new BasicStroke(DIAL_STROKE_THIN_WIDTH(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL); }
+    public static BasicStroke DIAL_THIN_STROKE() { return new BasicStroke(DIAL_STROKE_THIN_WIDTH(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER); }
     /** The stroke for the unset region in Dials etc. */
-    public static BasicStroke DIAL_THICK_STROKE() { return new BasicStroke(DIAL_STROKE_WIDTH(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL); }
+    public static BasicStroke DIAL_THICK_STROKE() { return new BasicStroke(DIAL_STROKE_WIDTH(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER); }
     /** Font used in the center of a dial. */
     public static Font DIAL_FONT() { return MEDIUM_FONT(); }
     /** Insets for labelled dials to set them apart slightly from one another. */
@@ -209,14 +209,31 @@ public class Style
          
     public static void updateColors()
         {
-        BACKGROUND_COLOR = Synth.getLastColor("background-color", DEFAULT_BACKGROUND_COLOR);
-        TEXT_COLOR = Synth.getLastColor("text-color", DEFAULT_TEXT_COLOR);
+        Color backgroundDefault = UIManager.getColor("Panel.background");
+        if (backgroundDefault == null) backgroundDefault = DEFAULT_BACKGROUND_COLOR;
+
+        Color textDefault = UIManager.getColor("Label.foreground");
+        if (textDefault == null) textDefault = DEFAULT_TEXT_COLOR;
+
+        Color dynamicDefault = UIManager.getColor("Component.accentColor");
+        if (dynamicDefault == null) dynamicDefault = UIManager.getColor("Actions.Blue");
+        if (dynamicDefault == null) dynamicDefault = DEFAULT_DYNAMIC_COLOR;
+
+        Color unsetDefault = UIManager.getColor("Component.borderColor");
+        if (unsetDefault == null) unsetDefault = UIManager.getColor("Separator.foreground");
+        if (unsetDefault == null) unsetDefault = DEFAULT_UNSET_COLOR;
+
+        Color envelopeDefault = UIManager.getColor("Component.accentColor");
+        if (envelopeDefault == null) envelopeDefault = DEFAULT_ENVELOPE_COLOR;
+
+        BACKGROUND_COLOR = Synth.getLastColor("background-color", backgroundDefault);
+        TEXT_COLOR = Synth.getLastColor("text-color", textDefault);
         COLOR_A = Synth.getLastColor("a-color", DEFAULT_COLOR_A);
         COLOR_B = Synth.getLastColor("b-color", DEFAULT_COLOR_B);
         COLOR_C = Synth.getLastColor("c-color", DEFAULT_COLOR_C);
-        DYNAMIC_COLOR = Synth.getLastColor("dynamic-color", DEFAULT_DYNAMIC_COLOR);
-        ENVELOPE_COLOR = Synth.getLastColor("envelope-color", DEFAULT_ENVELOPE_COLOR);
-        UNSET_COLOR = Synth.getLastColor("unset-color", DEFAULT_UNSET_COLOR);
+        DYNAMIC_COLOR = Synth.getLastColor("dynamic-color", dynamicDefault);
+        ENVELOPE_COLOR = Synth.getLastColor("envelope-color", envelopeDefault);
+        UNSET_COLOR = Synth.getLastColor("unset-color", unsetDefault);
         }
 
     /////// OS DISTINGUISHING PROCEDURES

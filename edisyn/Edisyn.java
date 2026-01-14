@@ -6,7 +6,6 @@
 package edisyn;
 
 import edisyn.gui.*;
-import edisyn.synth.*;
 import javax.swing.*;
 //import com.apple.eawt.*;
 //import com.apple.eawt.event.*;
@@ -21,11 +20,33 @@ import javax.swing.*;
 public class Edisyn 
     {
     public static final int VERSION = 36;
+
+    static boolean trySetFlatLaf(boolean dark)
+        {
+        try
+            {
+            // We use reflection so Edisyn still compiles/runs without FlatLaf on the classpath.
+            String className = dark ? "com.formdev.flatlaf.FlatDarkLaf" : "com.formdev.flatlaf.FlatLightLaf";
+            Class<?> clazz = Class.forName(className);
+            java.lang.reflect.Method setup = clazz.getMethod("setup");
+            Object result = setup.invoke(null);
+            return (result instanceof Boolean) ? ((Boolean)result).booleanValue() : true;
+            }
+        catch (Throwable t)
+            {
+            return false;
+            }
+        }
     
     public static void main(String[] args)
         {
         try 
             {
+            // Prefer FlatLaf if available (modern Swing LAF). Fall back to the existing behavior otherwise.
+            // Default to dark mode.
+            boolean useDark = Synth.getLastXAsBoolean("FlatLafDark", null, true, false);
+            boolean usingFlatLaf = trySetFlatLaf(useDark);
+
             if (Style.isMac())
                 {
                 System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
@@ -51,22 +72,7 @@ public class Edisyn
                 {
                 System.setProperty("useSystemAAFontSettings", "lcd");  // see https://wiki.archlinux.org/title/Java_Runtime_Environment_fonts#Basic_settings
  
-                // Use Nimbus
-                for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) 
-                    {
-                    if ("Nimbus".equals(info.getName())) 
-                        {
-                        UIManager.setLookAndFeel(info.getClassName());
-                        Style.nimbus = true;
-                        break;
-                        }
-                    }
-
-                }
-                        
-            if (Style.isWindows())
-                {
-                try 
+                if (!usingFlatLaf)
                     {
                     // Use Nimbus
                     for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) 
@@ -78,14 +84,40 @@ public class Edisyn
                             break;
                             }
                         }
+                    }
+
+                }
+                        
+            if (Style.isWindows())
+                {
+                try 
+                    {
+                    if (!usingFlatLaf)
+                        {
+                        // Use Nimbus
+                        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) 
+                            {
+                            if ("Nimbus".equals(info.getName())) 
+                                {
+                                UIManager.setLookAndFeel(info.getClassName());
+                                Style.nimbus = true;
+                                break;
+                                }
+                            }
+                        }
                     } 
                 catch (Exception e) 
                     { 
                     // This makes sure that windows uses the default windows look and feel, not the old Sun one
                     // NOTE: this will seriously break Java on Linux
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    if (!usingFlatLaf)
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     }
                 }
+
+            // Style caches colors which are used by many custom-painted widgets.
+            // Refresh after the LookAndFeel has been chosen so the editor palette matches the active LAF.
+            Style.updateColors();
             }
         catch(Exception e) { }
                 

@@ -3,10 +3,13 @@
 JAVAC = javac ${JAVACFLAGS}
 
 all: 
-	${JAVAC} -cp libraries/coremidi4j-1.6.jar:edisyn $$(find edisyn -name '*.java')
+	${JAVAC} -cp "libraries/*:edisyn" $$(find edisyn -name '*.java')
 
 run:
-	java -cp libraries/coremidi4j-1.6.jar:. edisyn.Edisyn
+	java -cp "libraries/*:." edisyn.Edisyn
+
+test: 
+	make all && make run
 
 indent:
 	touch ${HOME}/.emacs
@@ -14,16 +17,18 @@ indent:
 
 jar:
 	- mkdir install 
-	rm -rf install/edisyn.jar uk META-INF
+	rm -rf install/edisyn.jar uk META-INF com
 	${JAVAC} edisyn/*.java edisyn/*/*.java edisyn/*/*/*.java 
 	touch /tmp/manifest.add
 	rm /tmp/manifest.add
 	echo "Main-Class: edisyn.Edisyn" > /tmp/manifest.add
-	cd libraries ; jar -xvf coremidi4j-1.6.jar
-	mv libraries/META-INF . ; mv libraries/uk .
-	jar -cvfm install/edisyn.jar /tmp/manifest.add edisyn/synth/synths.txt edisyn/gui/wordlist.txt edisyn/Manufacturers.txt `find edisyn -name "*.class"` `find edisyn -name "*.init"` `find edisyn -name "*.html"` `find edisyn -name "*.png"` `find edisyn -name "*.jpg"` `find edisyn/synth/ -name "*.txt.gz"` `find edisyn/synth/ -name "n_*.txt"` uk/ META-INF/
+	cd libraries ; for f in *.jar ; do jar -xvf $$f ; done
+	if test -d libraries/META-INF ; then mv libraries/META-INF . ; fi
+	if test -d libraries/uk ; then mv libraries/uk . ; fi
+	if test -d libraries/com ; then mv libraries/com . ; fi
+	jar -cvfm install/edisyn.jar /tmp/manifest.add edisyn/synth/synths.txt edisyn/gui/wordlist.txt edisyn/Manufacturers.txt `find edisyn -name "*.class"` `find edisyn -name "*.init"` `find edisyn -name "*.html"` `find edisyn -name "*.png"` `find edisyn -name "*.jpg"` `find edisyn/synth/ -name "*.txt.gz"` `find edisyn/synth/ -name "n_*.txt"` uk/ com/ META-INF/
 	echo jar -cvfm install/edisyn.jar /tmp/manifest.add edisyn/synth/synths.txt edisyn/gui/wordlist.txt edisyn/Manufacturers.txt `find edisyn -name "*.class"` `find edisyn -name "*.init"` `find edisyn -name "*.html"` `find edisyn -name "*.png"` `find edisyn -name "*.jpg"` `find edisyn/synth/ -name "*.txt.gz"` `find edisyn/synth/ -name "n_*.txt"` uk/ META-INF/
-	rm -rf uk META-INF
+	rm -rf uk com META-INF
 
 install: clean jar
 	rm -rf app/Edisyn.app install/jar install/Edisyn.app install/bundles install/Edisyn.dmg.html install/Edisyn.dmg.jnlp

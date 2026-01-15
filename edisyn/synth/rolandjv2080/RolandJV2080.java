@@ -4,12 +4,13 @@ import edisyn.*;
 import edisyn.gui.*;
 import java.awt.*;
 import javax.swing.*;
+import java.util.*;
 
 public class RolandJV2080 extends Synth
     {
     public static final int MAXIMUM_NAME_LENGTH = 12;
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     public static final String[] KEY_ASSIGNS = new String[] { "Poly", "Solo" };
     public static final String[] PORTAMENTO_MODES = new String[] { "Legato", "Normal" };
@@ -20,6 +21,39 @@ public class RolandJV2080 extends Synth
     public static final String[] CHORUS_OUTPUTS = new String[] { "Mix", "EFX", "Reverb", "Mix+Reverb" };
     public static final String[] ON_OFF = new String[] { "Off", "On" };
     public static final String[] CLOCK_SOURCES = new String[] { "Internal", "MIDI" };
+    public static final String[] PATCH_CONTROL_SOURCES = new String[]
+        {
+        "OFF",
+        "SYS-CTRL1",
+        "SYS-CTRL2",
+        "MODULATION",
+        "BREATH",
+        "FOOT",
+        "VOLUME",
+        "PAN",
+        "EXPRESSION",
+        "PITCH BEND",
+        "AFTERTOUCH",
+        "LFO1",
+        "LFO2",
+        "VELOCITY",
+        "KEYFOLLOW",
+        "PLAYMATE"
+        };
+    public static final String[] EFX_CONTROL_SOURCES = new String[]
+        {
+        "OFF",
+        "SYS-CTRL1",
+        "SYS-CTRL2",
+        "MODULATION",
+        "BREATH",
+        "FOOT",
+        "VOLUME",
+        "PAN",
+        "EXPRESSION",
+        "PITCH BEND",
+        "AFTERTOUCH"
+        };
     public static final String[] EFX_TYPES = new String[]
         {
         "STEREO-EQ",
@@ -128,6 +162,77 @@ public class RolandJV2080 extends Synth
     static final int COMMON_OFFSET_CLOCK_SOURCE = 0x48;
     static final int COMMON_OFFSET_CATEGORY = 0x49;
 
+    static final int DT1_WRITE_BIAS_CHORUS_REVERB_DELAY_START = 0x22;
+    static final int DT1_WRITE_BIAS_CHORUS_REVERB_DELAY_END = 0x2B;
+    static final int DT1_WRITE_BIAS_PATCH_TEMPO_AND_LATER_START = 0x2C;
+    static final int DT1_WRITE_BIAS_MINUS_ONE = -1;
+    static final int DT1_WRITE_BIAS_PLUS_ONE = 1;
+
+    static final HashMap<String, Integer> COMMON_KEY_TO_OFFSET = new HashMap<String, Integer>();
+    static
+        {
+        COMMON_KEY_TO_OFFSET.put("efxtype", COMMON_OFFSET_EFX_TYPE);
+        for(int i = 1; i <= 12; i++)
+            {
+            COMMON_KEY_TO_OFFSET.put("efxparameter" + i, COMMON_OFFSET_EFX_PARAMETER_1 + (i - 1));
+            }
+        COMMON_KEY_TO_OFFSET.put("efxmixoutsendlevel", COMMON_OFFSET_EFX_MIX_OUT_SEND_LEVEL);
+        COMMON_KEY_TO_OFFSET.put("efxchorussendlevel", COMMON_OFFSET_EFX_CHORUS_SEND_LEVEL);
+        COMMON_KEY_TO_OFFSET.put("efxreverbsendlevel", COMMON_OFFSET_EFX_REVERB_SEND_LEVEL);
+        COMMON_KEY_TO_OFFSET.put("efxcontrolsource1", COMMON_OFFSET_EFX_CONTROL_SOURCE_1);
+        COMMON_KEY_TO_OFFSET.put("efxcontrolsens1", COMMON_OFFSET_EFX_CONTROL_SENS_1);
+        COMMON_KEY_TO_OFFSET.put("efxcontroldepth1", COMMON_OFFSET_EFX_CONTROL_DEPTH_1);
+        COMMON_KEY_TO_OFFSET.put("efxcontrolsource2", COMMON_OFFSET_EFX_CONTROL_SOURCE_2);
+        COMMON_KEY_TO_OFFSET.put("efxcontrolsens2", COMMON_OFFSET_EFX_CONTROL_SENS_2);
+        COMMON_KEY_TO_OFFSET.put("efxcontroldepth2", COMMON_OFFSET_EFX_CONTROL_DEPTH_2);
+
+        COMMON_KEY_TO_OFFSET.put("choruslevel", COMMON_OFFSET_CHORUS_LEVEL);
+        COMMON_KEY_TO_OFFSET.put("chorusrate", COMMON_OFFSET_CHORUS_RATE);
+        COMMON_KEY_TO_OFFSET.put("chorusdepth", COMMON_OFFSET_CHORUS_DEPTH);
+        COMMON_KEY_TO_OFFSET.put("choruspredelay", COMMON_OFFSET_CHORUS_PRE_DELAY);
+        COMMON_KEY_TO_OFFSET.put("chorusfeedback", COMMON_OFFSET_CHORUS_FEEDBACK);
+        COMMON_KEY_TO_OFFSET.put("chorusoutput", COMMON_OFFSET_CHORUS_OUTPUT);
+
+        COMMON_KEY_TO_OFFSET.put("reverblevel", COMMON_OFFSET_REVERB_LEVEL);
+        COMMON_KEY_TO_OFFSET.put("reverbtime", COMMON_OFFSET_REVERB_TIME);
+        COMMON_KEY_TO_OFFSET.put("reverbhfdamp", COMMON_OFFSET_REVERB_HF_DAMP);
+        COMMON_KEY_TO_OFFSET.put("delayfeedback", COMMON_OFFSET_DELAY_FEEDBACK);
+
+        COMMON_KEY_TO_OFFSET.put("patchtempo", COMMON_OFFSET_PATCH_TEMPO);
+        COMMON_KEY_TO_OFFSET.put("patchlevel", COMMON_OFFSET_PATCH_LEVEL);
+        COMMON_KEY_TO_OFFSET.put("patchpanning", COMMON_OFFSET_PATCH_PANNING);
+        COMMON_KEY_TO_OFFSET.put("analogfeel", COMMON_OFFSET_ANALOG_FEEL);
+        COMMON_KEY_TO_OFFSET.put("voicereserve", COMMON_OFFSET_VOICE_RESERVE);
+        COMMON_KEY_TO_OFFSET.put("bendrangeup", COMMON_OFFSET_BEND_RANGE_UP);
+        COMMON_KEY_TO_OFFSET.put("bendrangedown", COMMON_OFFSET_BEND_RANGE_DOWN);
+        COMMON_KEY_TO_OFFSET.put("keyassign", COMMON_OFFSET_KEY_ASSIGN);
+        COMMON_KEY_TO_OFFSET.put("sololegatoswitch", COMMON_OFFSET_SOLO_LEGATO_SWITCH);
+        COMMON_KEY_TO_OFFSET.put("portamentoswitch", COMMON_OFFSET_PORTAMENTO_SWITCH);
+        COMMON_KEY_TO_OFFSET.put("portamentomode", COMMON_OFFSET_PORTAMENTO_MODE);
+        COMMON_KEY_TO_OFFSET.put("portamentotype", COMMON_OFFSET_PORTAMENTO_TYPE);
+        COMMON_KEY_TO_OFFSET.put("portamentostart", COMMON_OFFSET_PORTAMENTO_START);
+        COMMON_KEY_TO_OFFSET.put("portamentotime", COMMON_OFFSET_PORTAMENTO_TIME);
+
+        COMMON_KEY_TO_OFFSET.put("patchcontrolsource2", COMMON_OFFSET_PATCH_CONTROL_SOURCE_2);
+        COMMON_KEY_TO_OFFSET.put("patchcontrolsource3", COMMON_OFFSET_PATCH_CONTROL_SOURCE_3);
+
+        COMMON_KEY_TO_OFFSET.put("efxcontrolholdpeak", COMMON_OFFSET_EFX_CONTROL_HOLD_PEAK);
+        COMMON_KEY_TO_OFFSET.put("control1holdpeak", COMMON_OFFSET_CONTROL_1_HOLD_PEAK);
+        COMMON_KEY_TO_OFFSET.put("control2holdpeak", COMMON_OFFSET_CONTROL_2_HOLD_PEAK);
+        COMMON_KEY_TO_OFFSET.put("control3holdpeak", COMMON_OFFSET_CONTROL_3_HOLD_PEAK);
+        COMMON_KEY_TO_OFFSET.put("control4holdpeak", COMMON_OFFSET_CONTROL_4_HOLD_PEAK);
+
+        COMMON_KEY_TO_OFFSET.put("velocityrangeswitch", COMMON_OFFSET_VELOCITY_RANGE_SWITCH);
+        COMMON_KEY_TO_OFFSET.put("octaveshift", COMMON_OFFSET_OCTAVE_SHIFT);
+        COMMON_KEY_TO_OFFSET.put("stereotondepth", COMMON_OFFSET_STEREO_TONE_DEPTH);
+        COMMON_KEY_TO_OFFSET.put("voicepriority", COMMON_OFFSET_VOICE_PRIORITY);
+        COMMON_KEY_TO_OFFSET.put("structuretype12", COMMON_OFFSET_STRUCTURE_TYPE_1_2);
+        COMMON_KEY_TO_OFFSET.put("structuretype34", COMMON_OFFSET_STRUCTURE_TYPE_3_4);
+        COMMON_KEY_TO_OFFSET.put("booster34", COMMON_OFFSET_BOOSTER_3_4);
+        COMMON_KEY_TO_OFFSET.put("clocksource", COMMON_OFFSET_CLOCK_SOURCE);
+        COMMON_KEY_TO_OFFSET.put("category", COMMON_OFFSET_CATEGORY);
+        }
+
     byte[] commonData = new byte[COMMON_SIZE];
     boolean[] commonReceived = new boolean[COMMON_SIZE];
     byte[][] toneData = new byte[][] { null, new byte[TONE_SIZE], new byte[TONE_SIZE], new byte[TONE_SIZE], new byte[TONE_SIZE] };
@@ -213,6 +318,59 @@ public class RolandJV2080 extends Synth
         {
         if (buf == null || buf.length < COMMON_SIZE) return;
 
+        if (DEBUG)
+            {
+            System.err.println("RolandJV2080 Common Raw tempo hi/lo + level/pan/analog bytes=" +
+                String.format("%02X %02X %02X %02X %02X",
+                    buf[COMMON_OFFSET_PATCH_TEMPO] & 0x7F,
+                    buf[COMMON_OFFSET_PATCH_TEMPO + 1] & 0x7F,
+                    buf[0x2E] & 0x7F,
+                    buf[0x2F] & 0x7F,
+                    buf[0x30] & 0x7F));
+            System.err.println("RolandJV2080 Common Raw chorus/reverb bytes=" +
+                String.format("%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+                    buf[COMMON_OFFSET_CHORUS_LEVEL] & 0x7F,
+                    buf[COMMON_OFFSET_CHORUS_RATE] & 0x7F,
+                    buf[COMMON_OFFSET_CHORUS_DEPTH] & 0x7F,
+                    buf[COMMON_OFFSET_CHORUS_PRE_DELAY] & 0x7F,
+                    buf[COMMON_OFFSET_CHORUS_FEEDBACK] & 0x7F,
+                    buf[COMMON_OFFSET_CHORUS_OUTPUT] & 0x7F,
+                    buf[COMMON_OFFSET_REVERB_LEVEL] & 0x7F,
+                    buf[COMMON_OFFSET_REVERB_TIME] & 0x7F,
+                    buf[COMMON_OFFSET_REVERB_HF_DAMP] & 0x7F,
+                    buf[COMMON_OFFSET_DELAY_FEEDBACK] & 0x7F));
+
+            StringBuilder dump = new StringBuilder();
+            for(int i = 0; i < COMMON_SIZE; i++)
+                {
+                if ((i % 16) == 0)
+                    {
+                    if (i > 0) dump.append('\n');
+                    dump.append(String.format("%02X: ", i));
+                    }
+                dump.append(String.format("%02X ", buf[i] & 0x7F));
+                }
+            System.err.println("RolandJV2080 Common Dump\n" + dump.toString());
+
+            int[] targets = new int[] { 0x78, 0x7F, 0x40 };
+            for(int t = 0; t < targets.length; t++)
+                {
+                int target = targets[t];
+                int first = -1;
+                int count = 0;
+                for(int i = 0; i < COMMON_SIZE; i++)
+                    {
+                    int v = buf[i] & 0x7F;
+                    if (v == target)
+                        {
+                        if (first == -1) first = i;
+                        count++;
+                        }
+                    }
+                System.err.println("RolandJV2080 Common Scan value=" + String.format("%02X", target) + " firstOffset=" + (first == -1 ? "--" : String.format("%02X", first)) + " count=" + count);
+                }
+            }
+
         model.set("efxtype", (buf[COMMON_OFFSET_EFX_TYPE] & 0x7F));
         for(int i = 0; i < 12; i++)
             {
@@ -221,10 +379,14 @@ public class RolandJV2080 extends Synth
         model.set("efxmixoutsendlevel", (buf[COMMON_OFFSET_EFX_MIX_OUT_SEND_LEVEL] & 0x7F));
         model.set("efxchorussendlevel", (buf[COMMON_OFFSET_EFX_CHORUS_SEND_LEVEL] & 0x7F));
         model.set("efxreverbsendlevel", (buf[COMMON_OFFSET_EFX_REVERB_SEND_LEVEL] & 0x7F));
-        model.set("efxcontrolsource1", (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_1] & 0x7F));
+        int efxSrc1 = (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_1] & 0x7F);
+        if (efxSrc1 >= EFX_CONTROL_SOURCES.length) efxSrc1 = EFX_CONTROL_SOURCES.length - 1;
+        model.set("efxcontrolsource1", efxSrc1);
         model.set("efxcontrolsens1", (buf[COMMON_OFFSET_EFX_CONTROL_SENS_1] & 0x7F));
         model.set("efxcontroldepth1", (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_1] & 0x7F));
-        model.set("efxcontrolsource2", (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_2] & 0x7F));
+        int efxSrc2 = (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_2] & 0x7F);
+        if (efxSrc2 >= EFX_CONTROL_SOURCES.length) efxSrc2 = EFX_CONTROL_SOURCES.length - 1;
+        model.set("efxcontrolsource2", efxSrc2);
         model.set("efxcontrolsens2", (buf[COMMON_OFFSET_EFX_CONTROL_SENS_2] & 0x7F));
         model.set("efxcontroldepth2", (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_2] & 0x7F));
 
@@ -245,16 +407,18 @@ public class RolandJV2080 extends Synth
         model.set("reverbhfdamp", hf);
         model.set("delayfeedback", (buf[COMMON_OFFSET_DELAY_FEEDBACK] & 0x7F));
 
-        int tempo = (buf[COMMON_OFFSET_PATCH_TEMPO] & 0x7F);
+        // Empirically, the JV-2080 Common dump encodes Patch Tempo as two nibbles (hi/lo)
+        // at 0x2C/0x2D: tempo = hi * 16 + lo.
+        int tempo = ((buf[COMMON_OFFSET_PATCH_TEMPO] & 0x7F) * 16) + (buf[COMMON_OFFSET_PATCH_TEMPO + 1] & 0x7F);
         if (tempo < 20) tempo = 20;
         if (tempo > 250) tempo = 250;
         model.set("patchtempo", tempo);
 
-        model.set("patchlevel", (buf[COMMON_OFFSET_PATCH_LEVEL] & 0x7F));
-        model.set("patchpanning", (buf[COMMON_OFFSET_PATCH_PANNING] & 0x7F));
-        model.set("analogfeel", (buf[COMMON_OFFSET_ANALOG_FEEL] & 0x7F));
+        model.set("patchlevel", (buf[0x2E] & 0x7F));
+        model.set("patchpanning", (buf[0x2F] & 0x7F));
+        model.set("analogfeel", (buf[0x30] & 0x7F));
 
-        int vr = (buf[COMMON_OFFSET_VOICE_RESERVE] & 0x7F);
+        int vr = (buf[0x31] & 0x7F);
         if (vr > 64) vr = 64;
         model.set("voicereserve", vr);
 
@@ -276,8 +440,12 @@ public class RolandJV2080 extends Synth
         model.set("portamentostart", portaStart);
         model.set("portamentotime", (buf[COMMON_OFFSET_PORTAMENTO_TIME] & 0x7F));
 
-        model.set("patchcontrolsource2", (buf[COMMON_OFFSET_PATCH_CONTROL_SOURCE_2] & 0x7F));
-        model.set("patchcontrolsource3", (buf[COMMON_OFFSET_PATCH_CONTROL_SOURCE_3] & 0x7F));
+        int pcs2 = (buf[COMMON_OFFSET_PATCH_CONTROL_SOURCE_2] & 0x7F);
+        if (pcs2 >= PATCH_CONTROL_SOURCES.length) pcs2 = PATCH_CONTROL_SOURCES.length - 1;
+        model.set("patchcontrolsource2", pcs2);
+        int pcs3 = (buf[COMMON_OFFSET_PATCH_CONTROL_SOURCE_3] & 0x7F);
+        if (pcs3 >= PATCH_CONTROL_SOURCES.length) pcs3 = PATCH_CONTROL_SOURCES.length - 1;
+        model.set("patchcontrolsource3", pcs3);
 
         model.set("efxcontrolholdpeak", ((buf[COMMON_OFFSET_EFX_CONTROL_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
         model.set("control1holdpeak", ((buf[COMMON_OFFSET_CONTROL_1_HOLD_PEAK] & 0x7F) == 0 ? 0 : 1));
@@ -386,6 +554,30 @@ public class RolandJV2080 extends Synth
         return msg;
         }
 
+    byte[] buildDT1(int[] address, byte[] data)
+        {
+        if (data == null) data = new byte[0];
+        byte[] msg = new byte[1 + 1 + 1 + 1 + 1 + 4 + data.length + 1 + 1];
+        int pos = 0;
+        msg[pos++] = (byte)0xF0;
+        msg[pos++] = (byte)0x41;
+        msg[pos++] = (byte)getID();
+        msg[pos++] = (byte)MODEL_ID;
+        msg[pos++] = (byte)COMMAND_DT1;
+
+        msg[pos++] = (byte)address[0];
+        msg[pos++] = (byte)address[1];
+        msg[pos++] = (byte)address[2];
+        msg[pos++] = (byte)address[3];
+
+        System.arraycopy(data, 0, msg, pos, data.length);
+        pos += data.length;
+
+        msg[pos++] = produceChecksum(msg, 5, 5 + 4 + data.length);
+        msg[pos++] = (byte)0xF7;
+        return msg;
+        }
+
     void logRQ1(byte[] rq1)
         {
         if (!DEBUG) return;
@@ -395,6 +587,18 @@ public class RolandJV2080 extends Synth
             " size=" +
             String.format("%02X %02X %02X %02X", rq1[9] & 0x7F, rq1[10] & 0x7F, rq1[11] & 0x7F, rq1[12] & 0x7F) +
             " chk=" + String.format("%02X", rq1[13] & 0x7F));
+        }
+
+    void logDT1(byte[] dt1)
+        {
+        if (!DEBUG) return;
+        if (dt1 == null || dt1.length < 11) return;
+        int payloadLen = dt1.length - 11;
+        System.err.println("RolandJV2080 DT1 " +
+            String.format("%02X %02X %02X %02X", dt1[5] & 0x7F, dt1[6] & 0x7F, dt1[7] & 0x7F, dt1[8] & 0x7F) +
+            " len=" + payloadLen +
+            " data=" + (payloadLen > 0 ? String.format("%02X", dt1[9] & 0x7F) : "--") +
+            " chk=" + String.format("%02X", dt1[dt1.length - 2] & 0x7F));
         }
 
     void resetReceived()
@@ -549,9 +753,10 @@ public class RolandJV2080 extends Synth
     public JComponent addCommon(Color color)
         {
         Category category = new Category(this, "Common", color);
+        category.makePasteable("name");
+        HBox hbox = new HBox();
 
         JComponent comp;
-        HBox hbox = new HBox();
 
         comp = new LabelledDial("Tempo", this, "patchtempo", color, 20, 250);
         hbox.add(comp);
@@ -619,6 +824,10 @@ public class RolandJV2080 extends Synth
         vbox2.add(comp);
         comp = new Chooser("Voice Pri", this, "voicepriority", VOICE_PRIORITIES);
         vbox2.add(comp);
+        comp = new Chooser("Ctrl Src 2", this, "patchcontrolsource2", PATCH_CONTROL_SOURCES);
+        vbox2.add(comp);
+        comp = new Chooser("Ctrl Src 3", this, "patchcontrolsource3", PATCH_CONTROL_SOURCES);
+        vbox2.add(comp);
         hbox.add(vbox2);
 
         comp = new LabelledDial("Porta", this, "portamentotime", color, 0, 127);
@@ -634,6 +843,13 @@ public class RolandJV2080 extends Synth
 
         comp = new Chooser("EFX Type", this, "efxtype", EFX_TYPES);
         hbox.add(comp);
+
+        VBox vboxEfx = new VBox();
+        comp = new Chooser("EFX Ctrl Src 1", this, "efxcontrolsource1", EFX_CONTROL_SOURCES);
+        vboxEfx.add(comp);
+        comp = new Chooser("EFX Ctrl Src 2", this, "efxcontrolsource2", EFX_CONTROL_SOURCES);
+        vboxEfx.add(comp);
+        hbox.add(vboxEfx);
         comp = new LabelledDial("EFX", this, "efxmixoutsendlevel", color, 0, 127);
         ((LabelledDial)comp).addAdditionalLabel("Mix Out");
         hbox.add(comp);
@@ -1167,6 +1383,52 @@ public class RolandJV2080 extends Synth
     public Object[] emitAll(Model tempModel, boolean toWorkingMemory, boolean toFile)
         {
         return new Object[0];
+        }
+
+    int computePatchCommonDT1WriteOffset(int offset)
+        {
+        int o = offset & 0x7F;
+        int bias = 0;
+        if (o >= DT1_WRITE_BIAS_PATCH_TEMPO_AND_LATER_START)
+            bias = DT1_WRITE_BIAS_PLUS_ONE;
+        else if (o >= DT1_WRITE_BIAS_CHORUS_REVERB_DELAY_START && o <= DT1_WRITE_BIAS_CHORUS_REVERB_DELAY_END)
+            bias = DT1_WRITE_BIAS_MINUS_ONE;
+        return (o + bias) & 0x7F;
+        }
+
+    public byte[] emit(String key)
+        {
+        Integer offset = COMMON_KEY_TO_OFFSET.get(key);
+        if (offset == null)
+            return null;
+
+        int o = offset.intValue() & 0x7F;
+        int writeOffset = computePatchCommonDT1WriteOffset(o);
+
+        int[] addr = buildAddress(0x00, writeOffset);
+        byte[] payload;
+        if (key.equals("patchtempo"))
+            {
+            int tempo = model.get(key, 120);
+            if (tempo < 20) tempo = 20;
+            if (tempo > 250) tempo = 250;
+            int hi = (tempo >>> 4) & 0x7F;
+            int lo = (tempo & 0x0F) & 0x7F;
+            payload = new byte[] { (byte)hi, (byte)lo };
+            }
+        else
+            {
+            int val = model.get(key, 0) & 0x7F;
+            payload = new byte[] { (byte)val };
+            }
+
+        byte[] dt1 = buildDT1(addr, payload);
+        if (DEBUG)
+            {
+            System.err.println("RolandJV2080 emit key=" + key + " offset=" + String.format("%02X", o) + " writeOffset=" + String.format("%02X", writeOffset) + " len=" + payload.length);
+            logDT1(dt1);
+            }
+        return dt1;
         }
 
     public byte[] requestCurrentDump()

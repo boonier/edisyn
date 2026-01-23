@@ -115,12 +115,10 @@ public class RolandJV2080 extends Synth
     static final int COMMON_OFFSET_EFX_MIX_OUT_SEND_LEVEL = 0x19;
     static final int COMMON_OFFSET_EFX_CHORUS_SEND_LEVEL = 0x1A;
     static final int COMMON_OFFSET_EFX_REVERB_SEND_LEVEL = 0x1B;
-    static final int COMMON_OFFSET_EFX_CONTROL_SOURCE_1 = 0x1C;
-    static final int COMMON_OFFSET_EFX_CONTROL_SENS_1 = 0x1D;
+    static final int COMMON_OFFSET_EFX_CONTROL_SOURCE_1 = 0x1D;
     static final int COMMON_OFFSET_EFX_CONTROL_DEPTH_1 = 0x1E;
     static final int COMMON_OFFSET_EFX_CONTROL_SOURCE_2 = 0x1F;
-    static final int COMMON_OFFSET_EFX_CONTROL_SENS_2 = 0x20;
-    static final int COMMON_OFFSET_EFX_CONTROL_DEPTH_2 = 0x21;
+    static final int COMMON_OFFSET_EFX_CONTROL_DEPTH_2 = 0x20;
     static final int COMMON_OFFSET_CHORUS_LEVEL = 0x22;
     static final int COMMON_OFFSET_CHORUS_RATE = 0x23;
     static final int COMMON_OFFSET_CHORUS_DEPTH = 0x24;
@@ -180,10 +178,8 @@ public class RolandJV2080 extends Synth
         COMMON_KEY_TO_OFFSET.put("efxchorussendlevel", COMMON_OFFSET_EFX_CHORUS_SEND_LEVEL);
         COMMON_KEY_TO_OFFSET.put("efxreverbsendlevel", COMMON_OFFSET_EFX_REVERB_SEND_LEVEL);
         COMMON_KEY_TO_OFFSET.put("efxcontrolsource1", COMMON_OFFSET_EFX_CONTROL_SOURCE_1);
-        COMMON_KEY_TO_OFFSET.put("efxcontrolsens1", COMMON_OFFSET_EFX_CONTROL_SENS_1);
         COMMON_KEY_TO_OFFSET.put("efxcontroldepth1", COMMON_OFFSET_EFX_CONTROL_DEPTH_1);
         COMMON_KEY_TO_OFFSET.put("efxcontrolsource2", COMMON_OFFSET_EFX_CONTROL_SOURCE_2);
-        COMMON_KEY_TO_OFFSET.put("efxcontrolsens2", COMMON_OFFSET_EFX_CONTROL_SENS_2);
         COMMON_KEY_TO_OFFSET.put("efxcontroldepth2", COMMON_OFFSET_EFX_CONTROL_DEPTH_2);
 
         COMMON_KEY_TO_OFFSET.put("choruslevel", COMMON_OFFSET_CHORUS_LEVEL);
@@ -382,13 +378,15 @@ public class RolandJV2080 extends Synth
         int efxSrc1 = (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_1] & 0x7F);
         if (efxSrc1 >= EFX_CONTROL_SOURCES.length) efxSrc1 = EFX_CONTROL_SOURCES.length - 1;
         model.set("efxcontrolsource1", efxSrc1);
-        model.set("efxcontrolsens1", (buf[COMMON_OFFSET_EFX_CONTROL_SENS_1] & 0x7F));
-        model.set("efxcontroldepth1", (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_1] & 0x7F));
+        int efxDepth1 = (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_1] & 0x7F);
+        if (efxDepth1 > 126) efxDepth1 = 126;
+        model.set("efxcontroldepth1", efxDepth1);
         int efxSrc2 = (buf[COMMON_OFFSET_EFX_CONTROL_SOURCE_2] & 0x7F);
         if (efxSrc2 >= EFX_CONTROL_SOURCES.length) efxSrc2 = EFX_CONTROL_SOURCES.length - 1;
         model.set("efxcontrolsource2", efxSrc2);
-        model.set("efxcontrolsens2", (buf[COMMON_OFFSET_EFX_CONTROL_SENS_2] & 0x7F));
-        model.set("efxcontroldepth2", (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_2] & 0x7F));
+        int efxDepth2 = (buf[COMMON_OFFSET_EFX_CONTROL_DEPTH_2] & 0x7F);
+        if (efxDepth2 > 126) efxDepth2 = 126;
+        model.set("efxcontroldepth2", efxDepth2);
 
         model.set("choruslevel", (buf[COMMON_OFFSET_CHORUS_LEVEL] & 0x7F));
         model.set("chorusrate", (buf[COMMON_OFFSET_CHORUS_RATE] & 0x7F));
@@ -847,7 +845,25 @@ public class RolandJV2080 extends Synth
         VBox vboxEfx = new VBox();
         comp = new Chooser("EFX Ctrl Src 1", this, "efxcontrolsource1", EFX_CONTROL_SOURCES);
         vboxEfx.add(comp);
+        comp = new LabelledDial("Depth 1", this, "efxcontroldepth1", color, 0, 126)
+            {
+            public boolean isSymmetric() { return true; }
+            public String map(int val)
+                {
+                return "" + (val - 63);
+                }
+            };
+        vboxEfx.add(comp);
         comp = new Chooser("EFX Ctrl Src 2", this, "efxcontrolsource2", EFX_CONTROL_SOURCES);
+        vboxEfx.add(comp);
+        comp = new LabelledDial("Depth 2", this, "efxcontroldepth2", color, 0, 126)
+            {
+            public boolean isSymmetric() { return true; }
+            public String map(int val)
+                {
+                return "" + (val - 63);
+                }
+            };
         vboxEfx.add(comp);
         hbox.add(vboxEfx);
         comp = new LabelledDial("EFX", this, "efxmixoutsendlevel", color, 0, 127);
@@ -892,6 +908,19 @@ public class RolandJV2080 extends Synth
         ((LabelledDial)comp).addAdditionalLabel("Feedback");
         hbox.add(comp);
 
+        VBox vboxHoldPeak = new VBox();
+        comp = new Chooser("EFX Ctrl", this, "efxcontrolholdpeak", HOLD_PEAK);
+        vboxHoldPeak.add(comp);
+        comp = new Chooser("Ctrl 1", this, "control1holdpeak", HOLD_PEAK);
+        vboxHoldPeak.add(comp);
+        comp = new Chooser("Ctrl 2", this, "control2holdpeak", HOLD_PEAK);
+        vboxHoldPeak.add(comp);
+        comp = new Chooser("Ctrl 3", this, "control3holdpeak", HOLD_PEAK);
+        vboxHoldPeak.add(comp);
+        comp = new Chooser("Ctrl 4", this, "control4holdpeak", HOLD_PEAK);
+        vboxHoldPeak.add(comp);
+        hbox.add(vboxHoldPeak);
+
         VBox vbox3 = new VBox();
         comp = new LabelledDial("Struct", this, "structuretype12", color, 0, 9);
         ((LabelledDial)comp).addAdditionalLabel("1/2");
@@ -904,6 +933,9 @@ public class RolandJV2080 extends Synth
         comp = new Chooser("Clock", this, "clocksource", CLOCK_SOURCES);
         vbox3.add(comp);
         hbox.add(vbox3);
+
+        comp = new LabelledDial("Category", this, "category", color, 0, 127);
+        hbox.add(comp);
 
         category.add(hbox, BorderLayout.CENTER);
         return category;
@@ -1385,6 +1417,7 @@ public class RolandJV2080 extends Synth
         return new Object[0];
         }
 
+    /** Computes the DT1 write offset for patch common parameters, applying bias adjustments as needed. */
     int computePatchCommonDT1WriteOffset(int offset)
         {
         int o = offset & 0x7F;
@@ -1395,7 +1428,6 @@ public class RolandJV2080 extends Synth
             bias = DT1_WRITE_BIAS_MINUS_ONE;
         return (o + bias) & 0x7F;
         }
-
     public byte[] emit(String key)
         {
         Integer offset = COMMON_KEY_TO_OFFSET.get(key);

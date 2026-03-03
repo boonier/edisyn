@@ -1,3 +1,4 @@
 {
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "java.project.referencedLibraries": ["libraries/**/*.jar"]
 }
